@@ -1,9 +1,17 @@
+# set working directory
 setwd("~/MSDS/SYS6018/Competitions/2.HousePrices/sys6018-competition-house-prices")
 
+# import libraries
 library(tidyverse)
 library(caret)
 
+
+# Read in the data --------------------------------------------------------
+
 house_prices <- read.csv('../input/train.csv', stringsAsFactors = TRUE)
+
+
+# Convert the data columns into appropriate formats -----------------------
 
 rate_levels <- 1:10
 house_prices$MSSubClass <- factor(house_prices$MSSubClass)
@@ -14,6 +22,7 @@ house_prices$YearRemodAdd <- factor(house_prices$YearRemodAdd)
 house_prices$MoSold <- factor(house_prices$MoSold)
 house_prices$YrSold <- factor(house_prices$YrSold)
 
+# replace missing values in factors as NA string and integers as imputed values
 cols <- colnames(house_prices)
 
 for (i in 1:ncol(house_prices)){
@@ -21,12 +30,13 @@ for (i in 1:ncol(house_prices)){
         if(is.factor(df_col)){
                 # print(i)
                 levels <- levels(df_col)
-                levels[length(levels) + 1] <- "NA"
-                df_col <- factor(df_col, levels = levels)
-                df_col[is.na(df_col)] <- "NA"
+                level_df <- table(df_col) %>% as.data.frame()
+                level_df <- level_df[order(-level_df$Freq),]
+                imputed_level <- level_df[1,1]
+                df_col[is.na(df_col)] <- imputed_level
         }
         else {
-                df_col[is.na(df_col)] = 0
+                df_col[is.na(df_col)] = mean(df_col, na.rm = TRUE)
         }
         house_prices[,cols[i]] <- df_col
 }
@@ -40,7 +50,6 @@ training <- house_prices[inTrain, ]
 validation <- house_prices[-inTrain, ]
 
 pr.lm1 <- lm(SalePrice ~ ., data = training)
-
 
 
 getOption("max.print")
@@ -63,20 +72,37 @@ expect <- validation$SalePrice
 
 mse2_valid <- mean((expect-pred)^2)
 mse2_valid
+# [1] 6552447129
 
 pr.lm3 <- lm(SalePrice ~ MSSubClass + LotArea + MSZoning + 
                      LandSlope + Neighborhood +
                     OverallQual +
-                     YearRemodAdd + RoofMatl + MasVnrArea + BsmtQual +
+                     YearRemodAdd + MasVnrArea + BsmtQual +
                      BsmtExposure  + BsmtFinSF1 + BsmtFinSF2 + BsmtUnfSF +
                      X1stFlrSF + X2ndFlrSF + ScreenPorch +PoolArea + PoolQC, data = training)
 
 summary(pr.lm3)
-#+ Condition2
 pred <- (predict(pr.lm3, newdata = validation))
 expect <- validation$SalePrice
 
 mse2_valid2 <- mean((expect-pred)^2)
 mse2_valid2
+# [1] 2228183393
 
 # No change in mse!
+
+pr.lm4 <- lm(SalePrice ~ MSSubClass  + MSZoning + 
+                     Neighborhood +
+                     OverallQual +
+                     MasVnrArea + BsmtQual +
+                     BsmtFinSF1 + BsmtFinSF2 + BsmtUnfSF +
+                     X1stFlrSF + X2ndFlrSF , data = training)
+
+summary(pr.lm4)
+pred <- (predict(pr.lm4, newdata = validation))
+expect <- validation$SalePrice
+
+mse2_valid3 <- mean((expect-pred)^2)
+mse2_valid3
+#[1] 800617307
+# significant change!
