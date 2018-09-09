@@ -28,6 +28,7 @@ house_prices$MoSold <- factor(house_prices$MoSold)
 cols <- colnames(house_prices)
 # loop over all the columns
 for (i in 1:ncol(house_prices)){
+<<<<<<< HEAD
   # extract each column into a vector: df_col
   df_col <- house_prices[,cols[i]]
   # if the column is a factor add the most frequent level of the variable as the imputed level
@@ -47,6 +48,27 @@ for (i in 1:ncol(house_prices)){
   }
   # store the imputed column back to the data frame
   house_prices[,cols[i]] <- df_col
+=======
+        # extract each column into a vector: df_col
+        df_col <- house_prices[,cols[i]]
+        # if the column is a factor add the most frequent level of the variable as the imputed level
+        if(is.factor(df_col)){
+                # get frequencies of each level and store it in the data frame
+                level_df <- table(df_col) %>% as.data.frame()
+                # sort the data frame in descending order
+                level_df <- level_df[order(-level_df$Freq),]
+                # take the first value of the data frame
+                imputed_level <- level_df[1,1]
+                # replace all missing values with the imputed level
+                df_col[is.na(df_col)] <- imputed_level
+        }
+        else {
+                # fill the missing value of numerical columns as the mean of the whole column
+                df_col[is.na(df_col)] = mean(df_col,na.rm = TRUE)
+        }
+        # store the imputed column back to the data frame
+        house_prices[,cols[i]] <- df_col
+>>>>>>> 9bb7745656f2efde1f2d002a82f5069be0dff26a
 }
 
 # describe the data frame
@@ -71,7 +93,11 @@ options(max.print = 2500)
 
 # print summary of the linear model
 summary(pr.lm1)
+<<<<<<< HEAD
 # Multiple R-squared:  0.9491,    Adjusted R-squared:  0.9336
+=======
+# Multiple R-squared:  0.9491,	Adjusted R-squared:  0.9336
+>>>>>>> 9bb7745656f2efde1f2d002a82f5069be0dff26a
 
 # pr.lm2 <- lm(SalePrice ~ YearBuilt  + KitchenQual + GarageType + ScreenPorch + Fireplaces +
 #                      X1stFlrSF + X2ndFlrSF, data = training)
@@ -88,11 +114,19 @@ summary(pr.lm1)
 # Attempt 2 ---------------------------------------------------------------
 
 pr.lm2 <- lm(SalePrice ~ YearBuilt + BedroomAbvGr + TotRmsAbvGrd +
+<<<<<<< HEAD
                + GarageArea + Neighborhood +
                KitchenQual + OverallCond, data = training)
 
 summary(pr.lm2)
 # Multiple R-squared:  0.7669,    Adjusted R-squared:  0.7589 
+=======
+                                            + GarageArea + Neighborhood +
+                                            KitchenQual + OverallCond, data = training)
+
+summary(pr.lm2)
+# Multiple R-squared:  0.7669,	Adjusted R-squared:  0.7589 
+>>>>>>> 9bb7745656f2efde1f2d002a82f5069be0dff26a
 
 pred <- (predict(pr.lm2, newdata = validation))
 expect <- validation$SalePrice
@@ -104,10 +138,17 @@ mse2_valid_2
 # Attempt 3 ---------------------------------------------------------------
 
 pr.lm3 <- lm(SalePrice ~ MSZoning+ LotArea+ Neighborhood+ YearBuilt+
+<<<<<<< HEAD
                GarageCars + OverallQual , data=training)
 
 summary(pr.lm3)
 # Multiple R-squared:  0.7945,    Adjusted R-squared:  0.7872 
+=======
+                      GarageCars + OverallQual , data=training)
+
+summary(pr.lm3)
+# Multiple R-squared:  0.7945,	Adjusted R-squared:  0.7872 
+>>>>>>> 9bb7745656f2efde1f2d002a82f5069be0dff26a
 
 pred <- (predict(pr.lm3, newdata = validation))
 expect <- validation$SalePrice
@@ -124,12 +165,21 @@ mse2_valid_3
 # Attempt 4 ---------------------------------------------------------------
 
 pr.lm4 <- lm(SalePrice ~ OverallQual+ YearBuilt+ GarageCars+ Neighborhood+
+<<<<<<< HEAD
                LotArea + KitchenQual + ScreenPorch + X1stFlrSF + X2ndFlrSF +
                BsmtFinSF1+BsmtFinSF2 + BsmtUnfSF + RoofMatl  + MSZoning + 
                PoolArea + GarageType, data=training)
 
 summary(pr.lm4)
 # Multiple R-squared:  0.9036,    Adjusted R-squared:  0.8982 
+=======
+                      LotArea + KitchenQual + ScreenPorch + X1stFlrSF + X2ndFlrSF +
+                     BsmtFinSF1+BsmtFinSF2 + BsmtUnfSF + RoofMatl  + MSZoning + 
+                     PoolArea + GarageType, data=training)
+
+summary(pr.lm4)
+# Multiple R-squared:  0.9036,	Adjusted R-squared:  0.8982 
+>>>>>>> 9bb7745656f2efde1f2d002a82f5069be0dff26a
 
 pred <- (predict(pr.lm4, newdata = validation))
 expect <- validation$SalePrice
@@ -159,6 +209,7 @@ test$MoSold <- factor(test$MoSold)
 df_col <- colnames(test)
 
 for (i in 1:ncol(test)){
+<<<<<<< HEAD
   # extract each column into a vector: df_col
   df_col <- test[,cols[i]]
   # if the column is a factor add the most frequent level of the variable as the imputed level
@@ -178,6 +229,27 @@ for (i in 1:ncol(test)){
   }
   # store the imputed column back to the data frame
   test[,cols[i]] <- df_col
+=======
+        # extract each column into a vector: df_col
+        df_col <- test[,cols[i]]
+        # if the column is a factor add the most frequent level of the variable as the imputed level
+        if(is.factor(df_col)){
+                # get frequencies of each level and store it in the data frame
+                level_df <- table(df_col) %>% as.data.frame()
+                # sort the data frame in descending order
+                level_df <- level_df[order(-level_df$Freq),]
+                # take the first value of the data frame
+                imputed_level <- level_df[1,1]
+                # replace all missing values with the imputed level
+                df_col[is.na(df_col)] <- imputed_level
+        }
+        else {
+                # fill the missing value of numerical columns as the mean of the whole column
+                df_col[is.na(df_col)] = mean(df_col,na.rm = TRUE)
+        }
+        # store the imputed column back to the data frame
+        test[,cols[i]] <- df_col
+>>>>>>> 9bb7745656f2efde1f2d002a82f5069be0dff26a
 }
 
 
@@ -185,4 +257,8 @@ SalePrice <- predict(pr.lm4, newdata = test)
 
 kaggle_df <- data.frame(Id = test$Id, SalePrice = SalePrice)
 
+<<<<<<< HEAD
 write.csv(kaggle_df, 'prediction.csv', row.names = FALSE)
+=======
+write.csv(kaggle_df, 'prediction.csv', row.names = FALSE)
+>>>>>>> 9bb7745656f2efde1f2d002a82f5069be0dff26a
