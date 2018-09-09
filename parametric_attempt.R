@@ -88,8 +88,8 @@ summary(pr.lm1)
 # Attempt 2 ---------------------------------------------------------------
 
 pr.lm2 <- lm(SalePrice ~ YearBuilt + BedroomAbvGr + TotRmsAbvGrd +
-                                            + GarageArea + Neighborhood +
-                                            KitchenQual + OverallCond, data = training)
+                     + GarageArea + Neighborhood +
+                     KitchenQual + OverallCond, data = training)
 
 summary(pr.lm2)
 # Multiple R-squared:  0.7669,	Adjusted R-squared:  0.7589 
@@ -104,7 +104,7 @@ mse2_valid_2
 # Attempt 3 ---------------------------------------------------------------
 
 pr.lm3 <- lm(SalePrice ~ MSZoning+ LotArea+ Neighborhood+ YearBuilt+
-                      GarageCars + OverallQual , data=training)
+                     GarageCars + OverallQual , data=training)
 
 summary(pr.lm3)
 # Multiple R-squared:  0.7945,	Adjusted R-squared:  0.7872 
@@ -124,7 +124,7 @@ mse2_valid_3
 # Attempt 4 ---------------------------------------------------------------
 
 pr.lm4 <- lm(SalePrice ~ OverallQual+ YearBuilt+ GarageCars+ Neighborhood+
-                      LotArea + KitchenQual + ScreenPorch + X1stFlrSF + X2ndFlrSF +
+                     LotArea + KitchenQual + ScreenPorch + X1stFlrSF + X2ndFlrSF +
                      BsmtFinSF1+BsmtFinSF2 + BsmtUnfSF + RoofMatl  + MSZoning + 
                      PoolArea + GarageType, data=training)
 
