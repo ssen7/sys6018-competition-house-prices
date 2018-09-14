@@ -126,8 +126,18 @@ knn_custom <- function(input_df, training_df, k, y){
         pred <- c()
         ncol_input <- ncol(input_df)
         ncol_training <- ncol(training_df)
-        distances <- sqrt(sum((input_df - training_df[,1:ncol_input] )**2))
-        training_df$distances <- distances
+        distances_column <- numeric(ncol_input)
+        training_df$distances <- NA
+        for (rows in 1:nrow(training_df)){
+                ecd <- 0
+                for (col in 1:ncol_input){
+                        distances_column[col] <- (input_df[,col] - training_df[,col])^2
+                        ecd <- sqrt(sum(distances_column))
+                }
+                training_df[rows, ncol_training+1] <- ecd
+        }
+        # distances <- sqrt(sum((input_df - training_df[,1:ncol(input_df)] )**2))
+        # training_df$distances <- distances
         training_df_order <- training_df[order(distances),]
         # take the first k rows and average
         input_df$Prediction <- mean(training_df_order[1:k, ncol_input+1])
