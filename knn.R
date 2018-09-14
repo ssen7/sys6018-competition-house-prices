@@ -122,32 +122,81 @@ names(training_df)
 # y: continuous outcome variable (here, we are looking for price)
 
 ## Saurav
-knn_custom <- function(input_df, training_df, k, y){
-        pred <- c()
-        ncol_input <- ncol(input_df)
-        ncol_training <- ncol(training_df)
-        distances_column <- numeric(ncol_input)
-        training_df$distances <- NA
-        for (rows in 1:nrow(training_df)){
-                ecd <- 0
-                for (col in 1:ncol_input){
-                        distances_column[col] <- (input_df[,col] - training_df[,col])^2
-                        ecd <- sqrt(sum(distances_column))
-                }
-                training_df[rows, ncol_training+1] <- ecd
-        }
-        # distances <- sqrt(sum((input_df - training_df[,1:ncol(input_df)] )**2))
-        # training_df$distances <- distances
-        training_df_order <- training_df[order(distances),]
-        # take the first k rows and average
-        input_df$Prediction <- mean(training_df_order[1:k, ncol_input+1])
-        
-}
+# knn_custom <- function(input_df, training_df, k, y){
+#         pred <- c()
+#         ncol_input <- ncol(input_df)
+#         ncol_training <- ncol(training_df)
+#         
+#         training_df$distances <- NA
+#         for (rows in 1:nrow(training_df)){
+#                 ecd <- 0
+#                 for (col in 1:ncol_input){
+#                         distances_column[col] <- (input_df[,col] - training_df[,col])^2
+#                         ecd <- sqrt(sum(distances_column))
+#                 }
+#                 training_df[rows, ncol_training+1] <- ecd
+#         }
+#         # distances <- sqrt(sum((input_df - training_df[,1:ncol(input_df)] )**2))
+#         # training_df$distances <- distances
+#         training_df_order <- training_df[order(distances),]
+#         # take the first k rows and average
+#         input_df$Prediction <- mean(training_df_order[1:k, ncol_input+1])
+#         
+# }
 
-input_df <- training_final[1,(1:ncol(training_final)-1)] 
+# knn_custom(input_df, training_df, k,y)
+
+###########################- Working code - ###################
+
+input_df <- training_final[1,(1:ncol(training_final)-1)]
 training_df <- training_final[2:nrow(training_final),]
 k = 3
 y = 'SalePrice'
 
-knn_custom(input_df, training_df, k,y)
+ncol_input <- ncol(input_df)
+ncol_training <- ncol(training_df)
+training_df$distances <- NA
+for (rows in 1:nrow(training_df)){
+        ecd <- 0
+        distances_column <- numeric(ncol_input)
+        for (col in 1:ncol_input){
+                distances_column[col] <- (input_df[1,col] - training_df[rows,col])^2
+                
+        }
+        ecd <- sqrt(sum(distances_column))
+        training_df$distances[rows] <- ecd
+}
+# distances <- sqrt(sum((input_df - training_df[,1:ncol(input_df)] )**2))
+# training_df$distances <- distances
+training_df_order <- training_df[order(training_df$distances),]
+# take the first k rows and average
+input_df$Prediction <- mean(training_df_order[1:k, ncol_input+1])
 
+###########################- Working code End - ###################
+
+
+# 
+# knn_custom <- function(input_df, training_df, k, y){
+#         ncol_input <- ncol(input_df)
+#         ncol_training <- ncol(training_df)
+#         training_df$distances <- NA
+#         for (rows in 1:nrow(training_df)){
+#                 ecd <- 0
+#                 distances_column <- numeric(ncol_input)
+#                 for (col in 1:ncol_input){
+#                         distances_column[col] <- (input_df[1,col] - training_df[rows,col])^2
+#                         
+#                 }
+#                 ecd <- sqrt(sum(distances_column))
+#                 training_df$distances[rows] <- ecd
+#         }
+#         # distances <- sqrt(sum((input_df - training_df[,1:ncol(input_df)] )**2))
+#         # training_df$distances <- distances
+#         training_df_order <- training_df[order(training_df$distances),]
+#         # take the first k rows and average
+#         prediction <- mean(training_df_order$distances[1:k])
+#         return(prediction)
+#         
+# }
+# 
+# knn_custom(input_df, training_df, 7,y)
