@@ -43,7 +43,7 @@ for (i in 1:ncol(house_prices)){
         }
         else {
                 # fill the missing value of numerical columns as the mean of the whole column
-                df_col[is.na(df_col)] = mean(df_col,na.rm = TRUE)
+                df_col[is.na(df_col)] = median(df_col,na.rm = TRUE)
         }
         # store the imputed column back to the data frame
         house_prices[,cols[i]] <- df_col
@@ -144,6 +144,10 @@ mse2_valid_4
 
 
 # Prediction on Kaggle Test Data ------------------------------------------
+pr.final <- lm(SalePrice ~ OverallQual+ YearBuilt+ GarageCars+ Neighborhood+
+                     LotArea + KitchenQual + ScreenPorch + X1stFlrSF + X2ndFlrSF +
+                     BsmtFinSF1+BsmtFinSF2 + BsmtUnfSF + RoofMatl  + MSZoning + 
+                     PoolArea + GarageType, data=house_prices)
 
 test <- read.csv('../input/test.csv', stringsAsFactors = TRUE)
 
@@ -174,14 +178,14 @@ for (i in 1:ncol(test)){
         }
         else {
                 # fill the missing value of numerical columns as the mean of the whole column
-                df_col[is.na(df_col)] = mean(df_col,na.rm = TRUE)
+                df_col[is.na(df_col)] = median(df_col,na.rm = TRUE)
         }
         # store the imputed column back to the data frame
         test[,cols[i]] <- df_col
 }
 
 
-SalePrice <- predict(pr.lm4, newdata = test)
+SalePrice <- predict(pr.final, newdata = test)
 
 kaggle_df <- data.frame(Id = test$Id, SalePrice = SalePrice)
 
