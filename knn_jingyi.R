@@ -308,6 +308,6 @@ knn_func <- function(test_data, train_data, k) {
   return(pred)
 }
 
-# accuracy of knn_func ???
+
 validation$pred <- pred
 mse_valid <- mean((validation$SalePrice-pred)^2)
