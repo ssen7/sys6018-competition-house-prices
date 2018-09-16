@@ -1,5 +1,6 @@
 # read training set and test set
-setwd("~/Desktop/sys6018-competition-house-prices")
+setwd("~/Documents/GitHub/UVA_homework/kaggel_house_price_knn")
+
 df_train <- read.csv("train.csv", header=TRUE)
 df_test <- read.csv("test.csv", header=TRUE)
 
@@ -11,7 +12,10 @@ ncol(df_train)
 length(df_train$Id)
 # 1370
 # the number of missing values for each row
-as.data.frame(colSums(is.na(df_train)))
+results <- as.data.frame(colSums(is.na(df_train)))
+missing_col <- subset(results, results != 0)
+nrow(missing_col)
+# 19
 # LotFrontage                        259
 # Alley                             1369
 # MasVnrType                           8
@@ -32,84 +36,47 @@ as.data.frame(colSums(is.na(df_train)))
 # Fence                             1179
 # MiscFeature                       1406
 
-
 # remove columns 'Alley', 'FireplaceQu', PoolQC', 'Fence', 'MiscFeature' because too many missings.
 
-# What left to impute:
-# MasVnrType                           8 (impute with the most frequenct category)
-# MasVnrArea                           8 (impute with the average of the column)
-# LotFrontage                        259 (impute with the average of the column)
-# BsmtQual                            37 (impute with the most frequenct category)
-# BsmtCond                            37 (impute with the most frequenct category)
-# BsmtExposure                        38 (impute with the most frequenct category)
-# BsmtFinType1                        37 (impute with the most frequenct category)
-# BsmtFinType2                        38 (impute with the most frequenct category)
-# Electrical                           1 (impute with the most frequenct category)
-# GarageType                          81 (impute with the most frequenct category)
-# GarageYrBlt                         81 (impute with the corresponding 'YearBuilt')
-# GarageFinish                        81 (impute with the most frequenct category)
-# GarageQual                          81 (impute with the most frequenct category)
-# GarageCond                          81 (impute with the most frequenct category)
+# the categorical data with missings
+cat_data <- c('MasVnrType', 'BsmtQual', 'BsmtCond', 'BsmtExposure', 'BsmtFinType1', 'BsmtFinType2', 'Electrical',
+              'GarageType', 'GarageFinish', 'GarageQual', 'GarageCond')
 
-# impute the missing values for the 11 variables
-#table(df_train$BsmtQual)
-# Ex  Fa  Gd  TA 
-# 121  35 618 649
-#sort(table(df_train$BsmtQual))
-# Fa  Ex  Gd  TA 
-# 35 121 618 649
-#names(sort(table(df_train$BsmtQual)))
-# "Fa" "Ex" "Gd" "TA"
-#tail(names(sort(table(df_train$BsmtQual))), 1) # get the last 1 element.
-# "TA"
-
-# impute the missing values
-#df_train$BsmtQual[is.na(df_train$BsmtQual)] <- 'TA'
-# check if the missing value from 'KitchenQual' is imputed
-#sum(is.na(df_train$BsmtQual))
-# 0
+# the numerical data with missings
+num_data_total <- c('MasVnrArea', 'LotFrontage', 'GarageYrBlt')
 
 # filling the categorical missing values
-df_train$MasVnrType[is.na(df_train$MasVnrType)] <- tail(names(sort(table(df_train$MasVnrType))), 1)
-df_train$BsmtQual[is.na(df_train$BsmtQual)] <- tail(names(sort(table(df_train$BsmtQual))), 1)
-df_train$BsmtCond[is.na(df_train$BsmtCond)] <- tail(names(sort(table(df_train$BsmtCond))), 1)
-df_train$BsmtExposure[is.na(df_train$BsmtExposure)] <- tail(names(sort(table(df_train$BsmtExposure))), 1)
-df_train$BsmtFinType1[is.na(df_train$BsmtFinType1)] <- tail(names(sort(table(df_train$BsmtFinType1))), 1)
-df_train$BsmtFinType2[is.na(df_train$BsmtFinType2)] <- tail(names(sort(table(df_train$BsmtFinType2))), 1)
-df_train$Electrical[is.na(df_train$Electrical)] <- tail(names(sort(table(df_train$Electrical))), 1)
-df_train$GarageType[is.na(df_train$GarageType)] <- tail(names(sort(table(df_train$GarageType))), 1)
-df_train$GarageFinish[is.na(df_train$GarageFinish)] <- tail(names(sort(table(df_train$GarageFinish))), 1)
-df_train$GarageQual[is.na(df_train$GarageQual)] <- tail(names(sort(table(df_train$GarageQual))), 1)
-df_train$GarageCond[is.na(df_train$GarageCond)] <- tail(names(sort(table(df_train$GarageCond))), 1)
-as.data.frame(colSums(is.na(df_train)))
+df <- df_train                                                          # df[achar]: get a column vector with column name
+for (achar in cat_data) {                                               # tail(X,1): get the last one element of X.
+  df[achar][is.na(df[achar])] <- tail(names(sort(table(df[achar]))), 1) # table(): returns the unique values and their counts for each column
+}                                                                       # names(): gets those unique values (here are the categorical levels) 
+df_train <- df        # give df back to df_train
+results <- as.data.frame(colSums(is.na(df_train)))
+missing_col <- subset(results, results != 0)
+nrow(missing_col)
 
-# filling the numeric missing values
-df_train$MasVnrArea <- ifelse(is.na(df_train$MasVnrArea), 
-                              ave(df_train$MasVnrArea, FUN=function(x) mean(x, na.rm = TRUE)),
-                              df_train$MasVnrArea)
-df_train$LotFrontage <- ifelse(is.na(df_train$LotFrontage), 
-                               ave(df_train$LotFrontage, FUN=function(x) mean(x, na.rm = TRUE)),
-                               df_train$LotFrontage)
-as.data.frame(colSums(is.na(df_train)))
+# filling the numeric missing values with median value
+num_data <- c('MasVnrArea', 'LotFrontage')
+df <- df_train
+for (achar in num_data) {
+  df[achar][is.na(df[achar])] <- median(df[,achar], na.rm = TRUE)  
+}                    # a comma in df[,achar] is very necessary to get only the value without header to calculate median
+df_train <- df
+sum(is.na(df_train$MasVnrArea))
+sum(is.na(df_train$LotFrontage))
 
 # filling the 'GarageYrBlt'
+year_data <- c('GarageYrBlt')
 row_index <- c(which(is.na(df_train$GarageYrBlt)))
 for (i in row_index) {
   df_train$GarageYrBlt[i] <- df_train$YearBuilt[i]
 }
-#sum(is.na(df_train$GarageYrBlt))
+sum(is.na(df_train$GarageYrBlt))
 
 # remove the five columns with too many missing values
 df_train <- df_train[, !(colnames(df_train) %in% c('Alley', 'FireplaceQu', 'PoolQC', 'Fence', 'MiscFeature'))]
 sum(is.na(df_train))
 # 0
-
-# Dummy variable for categorical data
-# a test
-#dummy()
-#dummies <- as.data.frame.matrix(table(1: length(df_train$MSZoning), as.factor(df_train$MSZoning)))
-#unique(df_train$MSZoning)
-#  C(all) FV RH RL RM
 
 ## narrow down the variable to the those
 df_train <- df_train[, colnames(df_train) %in% c('Id', 'OverallQual', 'YearBuilt', 'GarageCars', 'Neighborhood', 'LotArea', 
@@ -130,108 +97,84 @@ unique(df_train$MSZoning)
 # you have to make sure the target variables are factor. e.g. if your Sales$year are numeric, 
 # you have to convert them to factor fist: as.factor(Sales$year), then use dummyVars().
 
-# feature scaling
-#tr_dummy[1, ncol(tr_dummy)]
-tr_dummy[, 2:(ncol(tr_dummy)-1)] = scale(tr_dummy[, 2:(ncol(tr_dummy)-1)])
-tr_dummy
-dim(tr_dummy)
-# [1] 1460 61
+# feature scaling using standardization way: x=(x-x.min)/(x.max-x.min)
+# use the property of vector
+for (k in c(2:(ncol(tr_dummy)-1))) {
+  x.max <- max(tr_dummy[, k])
+  x.min <- min(tr_dummy[, k])
+  x <- tr_dummy[, k]
+  x <- (x-x.min)/(x.max-x.min)
+  tr_dummy[,k] <- x
+}
 
 ############### Data preprocessing for df_test #################
-
-as.data.frame(colSums(is.na(df_test)))
-# the same missing features with df_train, but different numbers of missings(second column for df_test)
-# LotFrontage                        259     227  (impute with the average of the column)
-# Alley                             1369     1352  -remove
-# MasVnrType                           8     16   (impute with the most frequenct category)
-# MasVnrArea                           8     15   (impute with the average of the column)
-# BsmtQual                            37     44   (impute with the most frequenct category)
-# BsmtCond                            37     45   (impute with the most frequenct category)
-# BsmtExposure                        38     44   (impute with the most frequenct category)
-# BsmtFinType1                        37     42   (impute with the most frequenct category)
-# BsmtFinType2                        38     42   (impute with the most frequenct category)
-# Electrical                           1
-# FireplaceQu                        690     730  -remove
-# GarageType                          81     76   (impute with the most frequenct category)
-# GarageYrBlt                         81     78   (impute with the corresponding 'YearBuilt')
-# GarageFinish                        81     78   (impute with the most frequenct category)
-# GarageQual                          81     78   (impute with the most frequenct category)
-# GarageCond                          81     78   (impute with the most frequenct category)
-# PoolQC                            1453     1456  -remove
-# Fence                             1179     1169  -remove
-# MiscFeature                       1406     1408  -remove
+results <- as.data.frame(colSums(is.na(df_test)))
+missing_col <- subset(results, results != 0)
+nrow(missing_col)
+# 33
+# MSZoning                           4
+# LotFrontage                      227
+# Alley                           1352
+# Utilities                          2
+# Exterior1st                        1
+# Exterior2nd                        1
+# MasVnrType                        16
+# MasVnrArea                        15
+# BsmtQual                          44
+# BsmtCond                          45
+# BsmtExposure                      44
+# BsmtFinType1                      42
+# BsmtFinSF1                         1
+# BsmtFinType2                      42
+# BsmtFinSF2                         1
+# BsmtUnfSF                          1
+# TotalBsmtSF                        1
+# BsmtFullBath                       2
+# BsmtHalfBath                       2
+# KitchenQual                        1
+# Functional                         2
+# FireplaceQu                      730
+# GarageType                        76
+# GarageYrBlt                       78
+# GarageFinish                      78
+# GarageCars                         1
+# GarageArea                         1
+# GarageQual                        78
+# GarageCond                        78
+# PoolQC                          1456
+# Fence                           1169
+# MiscFeature                     1408
+# SaleType                           1
 
 # remove columns 'Alley', 'FireplaceQu', PoolQC', 'Fence', 'MiscFeature' because too many missings.
 
-# new missing features for df_test
-# MSZoning                            4 (impute with the most frequenct category)
-# Utilities                           2 (impute with the most frequenct category)
-# Exterior1st                         1 (impute with the most frequenct category)
-# Exterior2nd                         1 (impute with the most frequenct category)
-# BsmtFinSF1                          1 (impute with the average of the column)
-# BsmtFinSF2                          1 (impute with the average of the column)
-# BsmtUnfSF                           1 (impute with the average of the column)
-# TotalBsmtSF                         1 (impute with the average of the column)
-# BsmtFullBath                        2 (impute with the average of the column-(round?)
-# BsmtHalfBath                        2 (impute with the average of the column-(round?)
-# KitchenQual                         1 (impute with the most frequenct category)
-# Functional                          2 (impute with the most frequenct category)
-# GarageCars                          1 (impute with the average of the column-(round?)
-# GarageArea                          1 (impute with the average of the column)
-# SaleType                            1 (impute with the most frequenct category)
-
 # filling the categorical missing values
-# the same with df_train
-df_test$MasVnrType[is.na(df_test$MasVnrType)] <- tail(names(sort(table(df_test$MasVnrType))), 1)
-df_test$BsmtQual[is.na(df_test$BsmtQual)] <- tail(names(sort(table(df_test$BsmtQual))), 1)
-df_test$BsmtCond[is.na(df_test$BsmtCond)] <- tail(names(sort(table(df_test$BsmtCond))), 1)
-df_test$BsmtExposure[is.na(df_test$BsmtExposure)] <- tail(names(sort(table(df_test$BsmtExposure))), 1)
-df_test$BsmtFinType1[is.na(df_test$BsmtFinType1)] <- tail(names(sort(table(df_test$BsmtFinType1))), 1)
-df_test$BsmtFinType2[is.na(df_test$BsmtFinType2)] <- tail(names(sort(table(df_test$BsmtFinType2))), 1)
-df_test$GarageType[is.na(df_test$GarageType)] <- tail(names(sort(table(df_test$GarageType))), 1)
-df_test$GarageFinish[is.na(df_test$GarageFinish)] <- tail(names(sort(table(df_test$GarageFinish))), 1)
-df_test$GarageQual[is.na(df_test$GarageQual)] <- tail(names(sort(table(df_test$GarageQual))), 1)
-df_test$GarageCond[is.na(df_test$GarageCond)] <- tail(names(sort(table(df_test$GarageCond))), 1)
-# new for df_test
-df_test$MSZoning[is.na(df_test$MSZoning)] <- tail(names(sort(table(df_test$MSZoning))), 1)
-df_test$Utilities[is.na(df_test$Utilities)] <- tail(names(sort(table(df_test$Utilities))), 1)
-df_test$Exterior1st[is.na(df_test$Exterior1st)] <- tail(names(sort(table(df_test$Exterior1st))), 1)
-df_test$Exterior2nd [is.na(df_test$Exterior2nd )] <- tail(names(sort(table(df_test$Exterior2nd ))), 1)
-df_test$KitchenQual[is.na(df_test$KitchenQual)] <- tail(names(sort(table(df_test$KitchenQual))), 1)
-df_test$Functional[is.na(df_test$Functional)] <- tail(names(sort(table(df_test$Functional))), 1)
-df_test$SaleType[is.na(df_test$SaleType)] <- tail(names(sort(table(df_test$SaleType))), 1)
+cat_data <- c('MasVnrType', 'BsmtQual', 'BsmtCond', 'BsmtExposure', 'BsmtFinType1', 'BsmtFinType2',
+              'GarageType', 'GarageFinish', 'GarageQual', 'GarageCond', 'MSZoning', 'Utilities', 
+              'Exterior1st', 'Exterior2nd', 'KitchenQual', 'Functional', 'SaleType')
 
-# filling the numeric missing values
-df_test$MasVnrArea <- ifelse(is.na(df_test$MasVnrArea), 
-                             ave(df_test$MasVnrArea, FUN=function(x) mean(x, na.rm = TRUE)),
-                             df_test$MasVnrArea)
-df_test$LotFrontage <- ifelse(is.na(df_test$LotFrontage), 
-                              ave(df_test$LotFrontage, FUN=function(x) mean(x, na.rm = TRUE)),
-                              df_test$LotFrontage)
-df_test$BsmtFinSF1 <- ifelse(is.na(df_test$BsmtFinSF1), 
-                             ave(df_test$BsmtFinSF1, FUN=function(x) mean(x, na.rm = TRUE)),
-                             df_test$BsmtFinSF1)
-df_test$BsmtFinSF2 <- ifelse(is.na(df_test$BsmtFinSF2), 
-                             ave(df_test$BsmtFinSF2, FUN=function(x) mean(x, na.rm = TRUE)),
-                             df_test$BsmtFinSF2)
-df_test$BsmtUnfSF <- ifelse(is.na(df_test$BsmtUnfSF), 
-                            ave(df_test$BsmtUnfSF, FUN=function(x) mean(x, na.rm = TRUE)),
-                            df_test$BsmtUnfSF)
-df_test$TotalBsmtSF <- ifelse(is.na(df_test$TotalBsmtSF), 
-                              ave(df_test$TotalBsmtSF, FUN=function(x) mean(x, na.rm = TRUE)),
-                              df_test$TotalBsmtSF)
-df_test$BsmtFullBath <- ifelse(is.na(df_test$BsmtFullBath), 
-                               ave(df_test$BsmtFullBath, FUN=function(x) mean(x, na.rm = TRUE)),
-                               df_test$BsmtFullBath)
-df_test$BsmtHalfBath <- ifelse(is.na(df_test$BsmtHalfBath), 
-                               ave(df_test$BsmtHalfBath, FUN=function(x) mean(x, na.rm = TRUE)),
-                               df_test$BsmtHalfBath)
-df_test$GarageCars <- ifelse(is.na(df_test$GarageCars), 
-                             ave(df_test$GarageCars, FUN=function(x) mean(x, na.rm = TRUE)),
-                             df_test$GarageCars)
-df_test$GarageArea <- ifelse(is.na(df_test$GarageArea), 
-                             ave(df_test$GarageArea, FUN=function(x) mean(x, na.rm = TRUE)),
-                             df_test$GarageArea)
+df <- df_test                                                          # df[achar]: get a column vector with column name
+for (achar in cat_data) {                                               # tail(X,1): get the last one element of X.
+  df[achar][is.na(df[achar])] <- tail(names(sort(table(df[achar]))), 1) # table(): returns the unique values and their counts for each column
+}                                                                       # names(): gets those unique values (here are the categorical levels) 
+df_test <- df        # give df back to df_train
+results <- as.data.frame(colSums(is.na(df_test)))
+missing_col <- subset(results, results != 0)
+nrow(missing_col)
+# 16
+
+# filling the numeric missing values using median value
+num_data <- c('MasVnrArea', 'LotFrontage', 'BsmtFinSF1', 'BsmtFinSF2', 'BsmtUnfSF', 
+              'TotalBsmtSF', 'BsmtFullBath', 'BsmtHalfBath', 'GarageCars', 'GarageArea')
+df <- df_test
+for (achar in num_data) {
+  df[achar][is.na(df[achar])] <- median(df[,achar], na.rm = TRUE)  
+}                    # a comma in df[,achar] is very necessary to get only the value without header to calculate median
+df_test <- df
+results <- as.data.frame(colSums(is.na(df_test)))
+missing_col <- subset(results, results != 0)
+nrow(missing_col)
+
 
 # filling the 'GarageYrBlt'
 row_index <- c(which(is.na(df_test$GarageYrBlt)))
@@ -270,12 +213,15 @@ test_dummy <- dummyVars(~., data=df_test, sep='_', levelsOnly = FALSE) # create 
 te_dummy <- as.data.frame(predict(test_dummy, df_test))   # use predict method to apply dummy variable object to df_test
 class(te_dummy)
 
-# feature scaling
-te_dummy[, 2:(ncol(te_dummy))] = scale(te_dummy[, 2:(ncol(te_dummy))])
-te_dummy
-dim(te_dummy)
-# [1] 1460  60
-class(te_dummy)
+# feature scaling using standardization way: x=(x-x.min)/(x.max-x.min)
+for (k in c(2:ncol(te_dummy))) {
+  x.max <- max(te_dummy[, k])
+  x.min <- min(te_dummy[, k])
+  x <- te_dummy[, k]
+  x <- (x-x.min)/(x.max-x.min)
+  te_dummy[,k] <- x
+}
+
 
 ############### KNN for regression #################
 # splitting dataset for cross validation
@@ -285,29 +231,103 @@ split = sample.split(tr_dummy$YearBuilt, SplitRatio = 0.8)   # the returned valu
 training = subset(tr_dummy, split == TRUE)                    # if TRUE, for training
 validation = subset(tr_dummy, split == FALSE)                  # if FALSE, for test
 
-# Create a Euclidean distance function
-# v: a vector row of validation data
-# tr: a vector row of train data
-euclideanDist <- function(v, tr){
-  d = sqrt((v-tr)^2)
-  return(d)
-}
-
 # create a knn function
-knn_func <- function(test_data, train_data, k) {
-  pred <- c()
-  for (i in c(1:nrow(test_data))) {
-    dis_j <- c()
-    for (j in c(1:nrow(train_data))) {
-      eu_dis <- euclideanDist(test_data[i,], train_data[j,])
-      dis_j <- c(dis_j, eudis)
-    }
-    dis_j <- dis_j(order(dis_j))
-    pred <- c(pred, mean(dis_j[1:k]))
+predict_price <- c(length=nrow(validation))
+validation <- validation[, -1]    # get rid of 'Id' column
+training <- training[, -1]
+a_training <- training   # a_training used a temparory training set for combind the calculated distance for each row from validation
+
+# create a matrix for a_training to speed up 
+num_train_row <- nrow(a_training)      # get the rows counts for a_training
+num_train_col <- ncol(a_training) - 1  # get the column counts without 'SalePrice' column for a_training
+# create a matrix for a_training
+# rep(1:num_train_col, each=num_train_row): 
+# 1:num_train_col: a sequence from 1 to num_train_col
+# each=num_train_row: every element from the sequence is repeated num_train_row times
+# nrow: the number of rows for the matrix
+# by default, the matrix is filled by column.
+# here, each=num_train_row, nrow=num_train_row (repetition equals row number), and matrix filled by column, so the dimension of the 
+## resulted matrix is num_train_col * num_train_row, and the value of each column is the same with the column's index.
+train_matrix <- matrix(rep(1:num_train_col, each=num_train_row), nrow = num_train_row)
+
+# append each element from a_training to the new training matrix
+# loop over each row of a_training
+for (j in c(1:num_train_row)){
+  # get a row from a_training & change it to a numeric list. The numeric list is favorable for mathematical operation(speed up calculation)
+  a_row <- as.numeric(a_training[i, -ncol(a_training)]) # -ncol(a_training): means excluding the 'SalePrice'
+  # loop over each column of a_row to get one element
+  for (i in c(1:num_train_col)) {
+    # append an element in row j and column i to the corresponding position of the new matrix
+    train_matrix[j, i] <- a_row[i]
   }
-  return(pred)
 }
 
+# loop over each row of validation
+k = 5
+for (j in c(1:nrow(validation))){  
+  a_row <- as.numeric(validation[j,-ncol(training)]) # get one row without 'SalePrice', and change it to numeric list to speed up
+  dist_i <- numeric(length=nrow(a_training)) # create a numeric vector to place calculated distance for one row of validation with
+  # all rows of training matrix
+  # loop over each row of the training matrix 
+  for (i in c(1:nrow(a_training))) {
+    #train_row <- as.numeric(a_training[i, -ncol(a_training)])
+    train_row <- train_matrix[i,]   # get one row from the training matrix
+    dist_i[i] <- sqrt(sum(a_row-train_row)^2)  # get the euclidean distance of the two rows and place the distance in dist_i 
+  }
+  a_training$distance <- dist_i # append the dis_i to a_training
+  a_sorted_training <- a_training[order(a_training$distance),] # sort a_training based on distance
+  ave_k <- mean(a_sorted_training[1:k, 'SalePrice']) # get the average of five 'SalePrice' related to the first five shortest distances
+  predict_price[j] <- ave_k # append the predicted price for the first row of validation to predict_price
+}
+#cbind(validation$SalePrice, predict_price)
 
-validation$pred <- pred
-mse_valid <- mean((validation$SalePrice-pred)^2)
+# calculate mse
+mse <- mean((validation$SalePrice-predict_price)^2)
+rms <- sqrt(mse)
+rms
+
+# rms = 78905.65 (k=6)
+# rms = 74226.26 (k=5)
+# rms = 76246.1  (k=4)
+
+############### Prediction(Test set) #################
+# prediction for test set
+prediction <- c(length=nrow(te_dummy$Id))
+validation <- te_dummy[, -1] # here validation is the test set. -1 is to exclude 'Id' column
+training <- tr_dummy[, -1]  # for predicting test set, use the whole training set to predict
+a_training <- training
+
+# create a training matrix for the whole train set(both training and valiation)
+num_train_row <- nrow(a_training)
+num_train_col <- ncol(a_training) - 1
+train_matrix <- matrix(rep(1:num_train_col, each=num_train_row), nrow = num_train_row)
+
+# append each element from a_training to the corresponding position of the new matrix
+for (j in c(1:num_train_row)){
+  a_row <- as.numeric(a_training[i, -ncol(a_training)])
+  for (i in c(1:num_train_col)) {
+    train_matrix[j, i] <- a_row[i]
+  }
+}
+
+# get the distance for each row of valiation
+k = 5
+for (j in c(1:nrow(validation))){
+  a_row <- as.numeric(validation[j,])
+  dist_i <- numeric(length=nrow(a_training))
+  for (i in c(1:nrow(a_training))) {
+    #train_row <- as.numeric(a_training[i, -ncol(a_training)])
+    train_row <- train_matrix[i,]
+    dist_i[i] <- sqrt(sum(a_row-train_row)^2)  # calculate the eucledean distance
+  }
+  a_training$distance <- dist_i
+  a_sorted_training <- a_training[order(a_training$distance),] # sort the training set based on distance
+  ave_k <- mean(a_sorted_training[1:k, 'SalePrice'])  # get the averaged distance
+  prediction[j] <- ave_k   # the final prediction of 'SalePrice' for validation
+}
+
+# create a dataframe containing 'Id' and 'SalePrice'
+ka_df <- data.frame(Id=te_dummy$Id, SalePrice=prediction)
+
+# save the dataframe as a csv file
+write.csv(ka_df, 'prediction.csv', row.names = FALSE)

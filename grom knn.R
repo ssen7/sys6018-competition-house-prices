@@ -5,8 +5,8 @@
 
 
 # set working directory
-setwd("~/UVA/DSI/Fall 2018/SYS/Kaggle Competion 1/individual work gromadzki/housing all")
-
+#setwd("~/UVA/DSI/Fall 2018/SYS/Kaggle Competion 1/individual work gromadzki/housing all")
+setwd("~/Desktop/sys6018-competition-house-prices")
 # import libraries
 library(tidyverse)
 library(caret)
