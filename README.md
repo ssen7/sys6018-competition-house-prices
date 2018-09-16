@@ -2,7 +2,6 @@
 
 ## Parametric Regression
 ### Roles Arrangement:
-
 Alexander Gromadzki:
   * Data preprocessing
   * Parametric regression
