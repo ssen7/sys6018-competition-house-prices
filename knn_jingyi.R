@@ -1,3 +1,7 @@
+# Gromadzki, Alex
+# Luo, Jingyi
+# Sengupta, Saurav
+
 # read training set and test set
 setwd("~/Documents/GitHub/UVA_homework/kaggel_house_price_knn")
 
