@@ -178,12 +178,10 @@ for (observation in (1:nrow(sub_validation_data))){
         input_df$PredictPrice <- mean(training_df_order[1:k, ncol_input+1])
         sub_training_data <- rbind(sub_training_data,input_df)
         
-        # print(as.character(observation))
+        print(as.character(observation))
 }
-# distances <- sqrt(sum((input_df - training_df[,1:ncol(input_df)] )**2))
-# training_df$distances <- distances
-# take the first k rows and average
 
+write.table(sub_training_data, file = "train-val-knn.csv", row.names=F, sep=",")
 
 ###########################- Working code End - ###################
 
