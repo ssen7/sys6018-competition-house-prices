@@ -17,7 +17,6 @@ rate_levels <- 1:10
 house_prices$MSSubClass <- factor(house_prices$MSSubClass)
 house_prices$OverallQual <- factor(house_prices$OverallQual, levels = rate_levels)
 house_prices$OverallCond <- factor(house_prices$OverallCond, levels = rate_levels)
-# house_prices$YearBuilt <- factor(house_prices$YearBuilt)
 # house_prices$YearRemodAdd <- factor(house_prices$YearRemodAdd)
 house_prices$MoSold <- factor(house_prices$MoSold)
 # house_prices$YrSold <- factor(house_prices$YrSold)
@@ -93,10 +92,11 @@ training_final <- cbind(house_price_factor_onehot, house_price_contin,SalePrice)
 
 
 # KNN Implementation ------------------------------------------------------
-
+# read in test csv file 
 test <- read.csv('../input/test.csv', stringsAsFactors = TRUE)
 
 # Data Preprocess Test Data
+# clarify those variables as categorical variables
 rate_levels <- 1:10
 test$MSSubClass <- factor(test$MSSubClass)
 test$OverallQual <- factor(test$OverallQual, levels = rate_levels)
@@ -131,7 +131,7 @@ for (i in 1:ncol(test)){
 
 
 # standardizing test data
-
+# narrow down the variables to be rese
 test_sub <- test[,c('OverallQual', 'YearBuilt', 'GarageCars', 'Neighborhood',
                                     'LotArea', 'KitchenQual', 'ScreenPorch', 'X1stFlrSF','X2ndFlrSF',
                                     'BsmtFinSF1','BsmtFinSF2', 'BsmtUnfSF', 'RoofMatl', 'MSZoning',
@@ -143,7 +143,7 @@ str(test_sub)
 factors <- c('OverallQual','Neighborhood','KitchenQual','RoofMatl','MSZoning','GarageType')
 
 # separately standardize categorical and quantitative variables
-test_sub_contin <- test_sub[,!names(house_prices_sub) %in% factors]
+test_sub_contin <- test_sub[,!names(test_sub) %in% factors]
 test_sub_factor <- test_sub[,factors]
 
 # standardizing quantitative values
@@ -152,22 +152,24 @@ test_sub_factor <- test_sub[,factors]
 #         result <- (column.i-min)/(max-min)
 # }
 
+# loop over each column of test_sub_contin to standardize the values
 for (i in 1:ncol(test_sub_contin)){
         max <- max(test_sub_contin[,i])
         min <- min(test_sub_contin[,i])
-        test_sub_contin[,i] = sapply(test_sub_contin[,i], stddist, max= max, min=min)
-        
+        # use sapply() to apply the standardization function to the whole column
+        test_sub_contin[,i] = sapply(test_sub_contin[,i], stddist, max= max, min=min)      
 }
 
 # converting categorical variables to one hot encoding for distance calculations.
-train_dummy <- dummyVars(~., data=test_sub_factor, sep='_', levelsOnly = FALSE)
+# train_dummy <- dummyVars(~., data=test_sub_factor, sep='_', levelsOnly = FALSE)
+# ^ there were not the same number of levels in testing and training, so we are just using the training levels
 test_sub_factor_onehot <- as.data.frame(predict(train_dummy, test_sub_factor))
 
 test_final <- cbind(test_sub_factor_onehot, test_sub_contin)
 
+# set a value to k
 k = 5
 y = 'SalePrice'
-
 ncol_input <- ncol(test_final)
 
 # firstcol = which(colnames(x)=="OverallQual")
@@ -179,6 +181,7 @@ training_df$distances <- NA
 test_df <- test_final
 # initialize SalePrice column in the test data frame
 test_df$SalePrice <- NA
+test_df$distances <- NA
 
 for (observation in (1:nrow(test_df))){         # for each row in the testing data frame, evaluate the following
         ecd <- 0                                # initialize the eucilidean distance
@@ -195,12 +198,13 @@ for (observation in (1:nrow(test_df))){         # for each row in the testing da
                                                         # appropriate position in current distance vector
         }
         
-        # sort the training set by 
+        # sort the training set by the 3 smallest eucilidean distances in order to calculate average of nearest neighbors
         training_df_order <- training_df[order(training_df$distances),] 
+        # update the sales price for the current row in the testing data frame to match calculation of average of nearest neighbors 
         test_df$SalePrice[observation] <- mean(training_df_order[1:k, c(y)])
-        print(observation)
         # append the predicted row to our training data set
-        training_df <- rbind(training_df,test_df$SalePrice[observation] )
+        training_df <- rbind(training_df,test_df[observation,] ) # in this version, we fixed the bug where values of old sale prices were being overwritten by new average
+        print(observation) # allows us to keep track of the master observation loop's progress
         
 }
 
