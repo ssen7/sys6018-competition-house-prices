@@ -12,7 +12,7 @@ library(ggplot2)
 house_prices <- read.csv('../input/train.csv', stringsAsFactors = TRUE)
 
 # Data Pre-processing -----------------------------------------------------
-
+# clarify those variable as factor
 rate_levels <- 1:10
 house_prices$MSSubClass <- factor(house_prices$MSSubClass)
 house_prices$OverallQual <- factor(house_prices$OverallQual, levels = rate_levels)
@@ -56,12 +56,10 @@ for (i in 1:ncol(house_prices)){
 # Standardizing All Values ------------------------------------------------
 
 # taking all the best variables from our linear model
-
 house_prices_sub <- house_prices[,c('OverallQual', 'YearBuilt', 'GarageCars', 'Neighborhood',
                                     'LotArea', 'KitchenQual', 'ScreenPorch', 'X1stFlrSF','X2ndFlrSF',
                                     'BsmtFinSF1','BsmtFinSF2', 'BsmtUnfSF', 'RoofMatl', 'MSZoning',
                                     'PoolArea','GarageType')]
-
 str(house_prices_sub)
 
 # defining the categorical predictors
@@ -71,17 +69,17 @@ factors <- c('OverallQual','Neighborhood','KitchenQual','RoofMatl','MSZoning','G
 house_price_contin <- house_prices_sub[,!names(house_prices_sub) %in% factors]
 house_price_factor <- house_prices_sub[,factors]
 
-# standardizing quantitative values
-stddist <-function(column.i, max, min){
-        
+# a function for standardizing quantitative values
+# standardization formula citation -> http://www.saedsayad.com/k_nearest_neighbors_reg.htm
+stddist <-function(column.i, max, min){       
         result <- (column.i-min)/(max-min)
 }
-
+# loop over each column of the numerical variables and standardize them
 for (i in 1:ncol(house_price_contin)){
         max <- max(house_price_contin[,i])
         min <- min(house_price_contin[,i])
-        house_price_contin[,i] = sapply(house_price_contin[,i], stddist, max= max, min=min)
-        
+        # use sapply to apply the standardizing function to the whole column         
+        house_price_contin[,i] = sapply(house_price_contin[,i], stddist, max= max, min=min)     
 }
 
 # converting categorical variables to one hot encoding for distance calculations.
@@ -103,10 +101,9 @@ rate_levels <- 1:10
 test$MSSubClass <- factor(test$MSSubClass)
 test$OverallQual <- factor(test$OverallQual, levels = rate_levels)
 test$OverallCond <- factor(test$OverallCond, levels = rate_levels)
-# test$YearBuilt <- factor(test$YearBuilt)
-# test$YearRemodAdd <- factor(test$YearRemodAdd)
 test$MoSold <- factor(test$MoSold)
-# test$YrSold <- factor(test$YrSold)
+# we did not consider year built and year sold as categorical variables so that they could
+# be evaluated on a continuous basis
 
 df_col <- colnames(test)
 
@@ -183,22 +180,23 @@ test_df <- test_final
 # initialize SalePrice column in the test data frame
 test_df$SalePrice <- NA
 
-for (observation in (1:nrow(test_df))){
-        ecd <- 0
-        n <- nrow(training_final)
-        # training_df <- training_final
-        # input_df <- sub_validation_data[observation,c(firstcol,lastcol)]
-        # input_df <- sub_validation_data[observation,(1:ncol_input)]
-        distances_column <- numeric(ncol_input)
-        for (i in 1:n){
-                for (col in 1:ncol_input){
-                        distances_column[col] <- (test_df[observation,col] - training_df[i,col])^2 # need to fix this line
-                }
-                ecd <- sqrt(sum(distances_column))
-                training_df$distances[i] <- ecd
+for (observation in (1:nrow(test_df))){         # for each row in the testing data frame, evaluate the following
+        ecd <- 0                                # initialize the eucilidean distance
+        n <- nrow(training_final)               # n is the number of rows in the training set
+
+        distances_column <- numeric(ncol_input) # initialize a distances vector with the length
+                                                        # of the number of variables
+        for (i in 1:n){                         # for each row in the training set
+                for (col in 1:ncol_input){      # for each column in the training set
+                        distances_column[col] <- (test_df[observation,col] - training_df[i,col])^2
+                }       # ^ prepare to calculate the eucilidean distance by taking the square of column differences
+                ecd <- sqrt(sum(distances_column)) # calculate the eucilidean distance
+                training_df$distances[i] <- ecd    # set the eucilidean distance from current observation to the 
+                                                        # appropriate position in current distance vector
         }
         
-        training_df_order <- training_df[order(training_df$distances),]
+        # sort the training set by 
+        training_df_order <- training_df[order(training_df$distances),] 
         test_df$SalePrice[observation] <- mean(training_df_order[1:k, c(y)])
         print(observation)
         # append the predicted row to our training data set
