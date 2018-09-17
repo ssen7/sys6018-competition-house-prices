@@ -168,7 +168,7 @@ test_sub_factor_onehot <- as.data.frame(predict(train_dummy, test_sub_factor))
 
 test_final <- cbind(test_sub_factor_onehot, test_sub_contin)
 
-k = 3
+k = 5
 y = 'SalePrice'
 
 ncol_input <- ncol(test_final)
