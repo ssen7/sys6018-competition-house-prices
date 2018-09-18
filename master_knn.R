@@ -208,6 +208,8 @@ for (observation in (1:nrow(test_df))){         # for each row in the testing da
         
 }
 
+final_prediction_df <- data.frame('Id' =test$Id)
+final_prediction_df$SalePrice <-test_df$SalePrice
 
 
 
